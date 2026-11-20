@@ -10,6 +10,8 @@ the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-20
+
 ### Added
 
 - EnOcean gateway (USB 300, TCM 310, any ESP3 module) reached over TCP through
@@ -29,4 +31,5 @@ the version's GitHub Release.
 - CI (format, lint, tests on Node 22 and 24, store checks, Docker build), Release,
   multi-arch build and GitHub Release workflows; Dependabot.
 
-[Unreleased]: https://github.com/prohand/gladys-enocean/commits/main
+[Unreleased]: https://github.com/prohand/gladys-enocean/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/prohand/gladys-enocean/releases/tag/v1.0.1

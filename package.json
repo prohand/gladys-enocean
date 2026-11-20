@@ -1,6 +1,6 @@
 {
   "name": "gladys-enocean",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gladys Assistant external integration for EnOcean devices, through an ESP3 gateway (USB 300, TCM 310) reached over the network.",
   "type": "module",
