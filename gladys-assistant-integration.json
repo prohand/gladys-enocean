@@ -1,0 +1,813 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "EnOcean",
+  "description": {
+    "en": "EnOcean sensors, switches and actuators through a USB 300 gateway shared by ser2net.",
+    "fr": "Capteurs, interrupteurs et actionneurs EnOcean via une passerelle USB 300 partagée par ser2net.",
+    "de": "EnOcean-Sensoren, Schalter und Aktoren über ein USB-300-Gateway, freigegeben per ser2net.",
+    "es": "Sensores, interruptores y actuadores EnOcean mediante una pasarela USB 300 compartida con ser2net."
+  },
+  "version": "1.0.0",
+  "docker_image": "ghcr.io/prohand/gladys-enocean:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/prohand/gladys-enocean/main/cover.png",
+  "categories": ["protocols", "lighting", "environment"],
+  "keywords": [
+    "enocean",
+    "usb 300",
+    "tcm 310",
+    "esp3",
+    "eltako",
+    "nodon",
+    "ptm 215",
+    "868 mhz",
+    "ser2net",
+    "hoppe"
+  ],
+  "countries": [
+    "FR",
+    "BE",
+    "CH",
+    "LU",
+    "DE",
+    "AT",
+    "NL",
+    "ES",
+    "IT",
+    "PT",
+    "GB",
+    "IE",
+    "DK",
+    "SE",
+    "NO",
+    "FI",
+    "PL",
+    "CZ",
+    "US",
+    "CA"
+  ],
+  "transports": ["local"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Getting started",
+        "fr": "Pour commencer",
+        "de": "Erste Schritte",
+        "es": "Primeros pasos"
+      },
+      "description": {
+        "en": "The integration runs in a container that cannot see USB devices: plug your EnOcean USB 300 (or any ESP3 gateway) into a machine of your network and share it with ser2net as a raw TCP port at 57600 bauds. Then fill in its address below and declare your devices.",
+        "fr": "L'intégration tourne dans un conteneur qui ne voit pas les périphériques USB : branchez votre clé EnOcean USB 300 (ou toute passerelle ESP3) sur une machine de votre réseau et partagez-la avec ser2net en port TCP brut à 57600 bauds. Renseignez ensuite son adresse ci-dessous et déclarez vos appareils.",
+        "de": "Die Integration läuft in einem Container ohne Zugriff auf USB-Geräte: Stecke deinen EnOcean USB 300 (oder ein anderes ESP3-Gateway) an einen Rechner in deinem Netzwerk und gib ihn mit ser2net als rohen TCP-Port mit 57600 Baud frei. Trage dann unten seine Adresse ein und gib deine Geräte an.",
+        "es": "La integración se ejecuta en un contenedor que no ve los dispositivos USB: conecte su EnOcean USB 300 (o cualquier pasarela ESP3) a una máquina de su red y compártala con ser2net como puerto TCP en bruto a 57600 baudios. Después indique su dirección abajo y declare sus dispositivos."
+      },
+      "links": [
+        {
+          "url": "https://github.com/prohand/gladys-enocean/blob/main/docs/en.md",
+          "label": {
+            "en": "Integration documentation",
+            "fr": "Documentation de l'intégration",
+            "de": "Dokumentation der Integration",
+            "es": "Documentación de la integración"
+          }
+        },
+        {
+          "url": "https://github.com/cminyard/ser2net",
+          "label": {
+            "en": "ser2net",
+            "fr": "ser2net",
+            "de": "ser2net",
+            "es": "ser2net"
+          }
+        }
+      ]
+    },
+    {
+      "key": "gateway_host",
+      "type": "string",
+      "required": true,
+      "label": {
+        "en": "Gateway host",
+        "fr": "Hôte de la passerelle",
+        "de": "Gateway-Host",
+        "es": "Host de la pasarela"
+      },
+      "description": {
+        "en": "IP address or name of the machine running ser2net. Not 127.0.0.1: the integration runs in its own container.",
+        "fr": "Adresse IP ou nom de la machine qui fait tourner ser2net. Pas 127.0.0.1 : l'intégration tourne dans son propre conteneur.",
+        "de": "IP-Adresse oder Name des Rechners, auf dem ser2net läuft. Nicht 127.0.0.1: Die Integration läuft in ihrem eigenen Container.",
+        "es": "Dirección IP o nombre de la máquina que ejecuta ser2net. No 127.0.0.1: la integración se ejecuta en su propio contenedor."
+      },
+      "placeholder": {
+        "en": "192.168.1.50",
+        "fr": "192.168.1.50",
+        "de": "192.168.1.50",
+        "es": "192.168.1.50"
+      }
+    },
+    {
+      "key": "gateway_port",
+      "type": "number",
+      "required": true,
+      "default": 9999,
+      "min": 1,
+      "max": 65535,
+      "label": {
+        "en": "Gateway TCP port",
+        "fr": "Port TCP de la passerelle",
+        "de": "TCP-Port des Gateways",
+        "es": "Puerto TCP de la pasarela"
+      },
+      "description": {
+        "en": "The port ser2net listens on for the EnOcean module (raw mode, no telnet).",
+        "fr": "Le port sur lequel ser2net écoute pour le module EnOcean (mode raw, pas telnet).",
+        "de": "Der Port, auf dem ser2net für das EnOcean-Modul lauscht (Raw-Modus, kein Telnet).",
+        "es": "El puerto en el que ser2net escucha para el módulo EnOcean (modo raw, sin telnet)."
+      }
+    },
+    {
+      "key": "devices",
+      "type": "string",
+      "required": false,
+      "label": {
+        "en": "Devices",
+        "fr": "Appareils",
+        "de": "Geräte",
+        "es": "Dispositivos"
+      },
+      "description": {
+        "en": "Your EnOcean devices as a JSON list: one entry per device with its id (8 hex digits), its profile (EEP, e.g. A5-02-05) and a name. Actuators also get a channel (0-127). The \"Devices heard\" button writes the lines for you. See the documentation.",
+        "fr": "Vos appareils EnOcean en liste JSON : une entrée par appareil avec son id (8 chiffres hexadécimaux), son profil (EEP, par ex. A5-02-05) et un nom. Les actionneurs reçoivent aussi un canal (0-127). Le bouton « Appareils entendus » écrit les lignes pour vous. Voir la documentation.",
+        "de": "Deine EnOcean-Geräte als JSON-Liste: ein Eintrag pro Gerät mit seiner ID (8 Hex-Ziffern), seinem Profil (EEP, z. B. A5-02-05) und einem Namen. Aktoren erhalten zusätzlich einen Kanal (0-127). Die Schaltfläche „Empfangene Geräte“ schreibt die Zeilen für dich. Siehe die Dokumentation.",
+        "es": "Sus dispositivos EnOcean como lista JSON: una entrada por dispositivo con su id (8 dígitos hexadecimales), su perfil (EEP, p. ej. A5-02-05) y un nombre. Los actuadores reciben además un canal (0-127). El botón «Dispositivos oídos» escribe las líneas por usted. Consulte la documentación."
+      },
+      "placeholder": {
+        "en": "[{\"id\":\"0194E3B2\",\"eep\":\"A5-02-05\",\"name\":\"Living room\"}]",
+        "fr": "[{\"id\":\"0194E3B2\",\"eep\":\"A5-02-05\",\"name\":\"Salon\"}]",
+        "de": "[{\"id\":\"0194E3B2\",\"eep\":\"A5-02-05\",\"name\":\"Wohnzimmer\"}]",
+        "es": "[{\"id\":\"0194E3B2\",\"eep\":\"A5-02-05\",\"name\":\"Salón\"}]"
+      }
+    },
+    {
+      "key": "unknown_devices_trigger",
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "label": {
+        "en": "Report unknown devices",
+        "fr": "Signaler les appareils inconnus",
+        "de": "Unbekannte Geräte melden",
+        "es": "Avisar de dispositivos desconocidos"
+      },
+      "description": {
+        "en": "Fire the \"An unknown EnOcean device is heard\" scene trigger, at most once an hour per device. Turn it off if your neighbours' sensors are heard all day.",
+        "fr": "Déclenche le déclencheur de scène « Un appareil EnOcean inconnu est entendu », au plus une fois par heure et par appareil. Désactivez-le si les capteurs de vos voisins sont entendus toute la journée.",
+        "de": "Löst den Szenenauslöser „Ein unbekanntes EnOcean-Gerät wird empfangen“ aus, höchstens einmal pro Stunde und Gerät. Schalte es aus, wenn die Sensoren deiner Nachbarn den ganzen Tag empfangen werden.",
+        "es": "Activa el disparador de escena «Se oye un dispositivo EnOcean desconocido», como máximo una vez por hora y dispositivo. Desactívelo si se oyen todo el día los sensores de sus vecinos."
+      }
+    },
+    {
+      "key": "debug_logs",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "label": {
+        "en": "Detailed logs (debug)",
+        "fr": "Journaux détaillés (debug)",
+        "de": "Detaillierte Protokolle (Debug)",
+        "es": "Registros detallados (depuración)"
+      },
+      "description": {
+        "en": "Log every telegram heard, with its sender, its bytes and its signal. Turn it on to find out why a device does not show up, and off again once you know.",
+        "fr": "Journalise chaque télégramme entendu, avec son émetteur, ses octets et son signal. Activez-le pour comprendre pourquoi un appareil ne remonte pas, puis désactivez-le.",
+        "de": "Protokolliert jedes empfangene Telegramm mit Absender, Bytes und Signal. Schalte es ein, um herauszufinden, warum ein Gerät nicht erscheint, und danach wieder aus.",
+        "es": "Registra cada telegrama oído, con su emisor, sus bytes y su señal. Actívelo para averiguar por qué no aparece un dispositivo y desactívelo después."
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_connection",
+      "timeout_seconds": 15,
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      }
+    },
+    {
+      "key": "list_heard",
+      "timeout_seconds": 10,
+      "label": {
+        "en": "Devices heard",
+        "fr": "Appareils entendus",
+        "de": "Empfangene Geräte",
+        "es": "Dispositivos oídos"
+      }
+    },
+    {
+      "key": "learn_mode",
+      "timeout_seconds": 10,
+      "label": {
+        "en": "Open the learn mode",
+        "fr": "Ouvrir le mode apprentissage",
+        "de": "Lernmodus öffnen",
+        "es": "Abrir el modo de aprendizaje"
+      },
+      "fields": [
+        {
+          "key": "seconds",
+          "type": "number",
+          "required": false,
+          "default": 60,
+          "min": 10,
+          "max": 600,
+          "label": {
+            "en": "Duration (s)",
+            "fr": "Durée (s)",
+            "de": "Dauer (s)",
+            "es": "Duración (s)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "teach_in",
+      "timeout_seconds": 15,
+      "label": {
+        "en": "Pair an actuator",
+        "fr": "Appairer un actionneur",
+        "de": "Aktor anlernen",
+        "es": "Emparejar un actuador"
+      },
+      "fields": [
+        {
+          "key": "teach_in_intro",
+          "type": "section",
+          "label": {
+            "en": "Put the actuator in learn mode first",
+            "fr": "Mettez d'abord l'actionneur en mode apprentissage",
+            "de": "Versetze den Aktor zuerst in den Lernmodus",
+            "es": "Ponga primero el actuador en modo de aprendizaje"
+          },
+          "description": {
+            "en": "Turn the actuator to its learn position (LRN), then send: Gladys emits the teach-in telegram of its channel.",
+            "fr": "Placez l'actionneur en position apprentissage (LRN), puis envoyez : Gladys émet le télégramme d'apprentissage de son canal.",
+            "de": "Stelle den Aktor auf Lernen (LRN) und sende dann: Gladys sendet das Lerntelegramm seines Kanals.",
+            "es": "Ponga el actuador en posición de aprendizaje (LRN) y envíe: Gladys emite el telegrama de aprendizaje de su canal."
+          }
+        },
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Actuator",
+            "fr": "Actionneur",
+            "de": "Aktor",
+            "es": "Actuador"
+          },
+          "required": true
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "radio",
+      "icon": "radio",
+      "action_timeout_seconds": 15,
+      "label": {
+        "en": "EnOcean radio",
+        "fr": "Radio EnOcean",
+        "de": "EnOcean-Funk",
+        "es": "Radio EnOcean"
+      },
+      "description": {
+        "en": "Gateway status, learn mode and the last devices heard.",
+        "fr": "État de la passerelle, mode apprentissage et derniers appareils entendus.",
+        "de": "Gateway-Status, Lernmodus und die zuletzt empfangenen Geräte.",
+        "es": "Estado de la pasarela, modo de aprendizaje y últimos dispositivos oídos."
+      },
+      "settings": [
+        {
+          "key": "telegrams",
+          "type": "number",
+          "required": false,
+          "default": 5,
+          "min": 0,
+          "max": 8,
+          "label": {
+            "en": "Devices shown",
+            "fr": "Appareils affichés",
+            "de": "Angezeigte Geräte",
+            "es": "Dispositivos mostrados"
+          },
+          "description": {
+            "en": "How many of the last devices heard are listed (0 to 8).",
+            "fr": "Nombre de derniers appareils entendus à lister (0 à 8).",
+            "de": "Wie viele der zuletzt empfangenen Geräte aufgelistet werden (0 bis 8).",
+            "es": "Cuántos de los últimos dispositivos oídos se listan (0 a 8)."
+          }
+        }
+      ]
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "rocker_pressed",
+      "label": {
+        "en": "An EnOcean switch is pressed",
+        "fr": "Un interrupteur EnOcean est actionné",
+        "de": "Ein EnOcean-Schalter wird gedrückt",
+        "es": "Se pulsa un interruptor EnOcean"
+      },
+      "description": {
+        "en": "A button of a declared rocker switch (F6-02) was pressed and released.",
+        "fr": "Un bouton d'un interrupteur déclaré (F6-02) a été appuyé puis relâché.",
+        "de": "Eine Taste eines angegebenen Wippschalters (F6-02) wurde gedrückt und losgelassen.",
+        "es": "Se pulsó y soltó un botón de un interruptor declarado (F6-02)."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Switch",
+            "fr": "Interrupteur",
+            "de": "Schalter",
+            "es": "Interruptor"
+          },
+          "required": false
+        },
+        {
+          "key": "button",
+          "type": "multi_select",
+          "label": {
+            "en": "Button",
+            "fr": "Bouton",
+            "de": "Taste",
+            "es": "Botón"
+          },
+          "options": [
+            {
+              "value": "ao",
+              "label": {
+                "en": "A O (rocker A, upper)",
+                "fr": "A O (bascule A, haut)",
+                "de": "A O (Wippe A, oben)",
+                "es": "A O (balancín A, arriba)"
+              }
+            },
+            {
+              "value": "ai",
+              "label": {
+                "en": "A I (rocker A, lower)",
+                "fr": "A I (bascule A, bas)",
+                "de": "A I (Wippe A, unten)",
+                "es": "A I (balancín A, abajo)"
+              }
+            },
+            {
+              "value": "bo",
+              "label": {
+                "en": "B O (rocker B, upper)",
+                "fr": "B O (bascule B, haut)",
+                "de": "B O (Wippe B, oben)",
+                "es": "B O (balancín B, arriba)"
+              }
+            },
+            {
+              "value": "bi",
+              "label": {
+                "en": "B I (rocker B, lower)",
+                "fr": "B I (bascule B, bas)",
+                "de": "B I (Wippe B, unten)",
+                "es": "B I (balancín B, abajo)"
+              }
+            }
+          ]
+        },
+        {
+          "key": "press",
+          "type": "multi_select",
+          "label": {
+            "en": "Press",
+            "fr": "Appui",
+            "de": "Druck",
+            "es": "Pulsación"
+          },
+          "options": [
+            {
+              "value": "short",
+              "label": {
+                "en": "Short",
+                "fr": "Court",
+                "de": "Kurz",
+                "es": "Corta"
+              }
+            },
+            {
+              "value": "long",
+              "label": {
+                "en": "Long (1 s or more)",
+                "fr": "Long (1 s ou plus)",
+                "de": "Lang (1 s oder mehr)",
+                "es": "Larga (1 s o más)"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "device_name",
+          "type": "string",
+          "label": {
+            "en": "Device name",
+            "fr": "Nom de l'appareil",
+            "de": "Gerätename",
+            "es": "Nombre del dispositivo"
+          }
+        },
+        {
+          "key": "button",
+          "type": "string",
+          "label": {
+            "en": "Button",
+            "fr": "Bouton",
+            "de": "Taste",
+            "es": "Botón"
+          }
+        },
+        {
+          "key": "press",
+          "type": "string",
+          "label": {
+            "en": "Press (short/long)",
+            "fr": "Appui (short/long)",
+            "de": "Druck (short/long)",
+            "es": "Pulsación (short/long)"
+          }
+        },
+        {
+          "key": "duration_ms",
+          "type": "number",
+          "label": {
+            "en": "Duration (ms)",
+            "fr": "Durée (ms)",
+            "de": "Dauer (ms)",
+            "es": "Duración (ms)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "window_handle_moved",
+      "label": {
+        "en": "A window handle is turned",
+        "fr": "Une poignée de fenêtre est tournée",
+        "de": "Ein Fenstergriff wird gedreht",
+        "es": "Se gira una manilla de ventana"
+      },
+      "description": {
+        "en": "A declared window handle (F6-10-00) changed position.",
+        "fr": "Une poignée déclarée (F6-10-00) a changé de position.",
+        "de": "Ein angegebener Fenstergriff (F6-10-00) hat seine Stellung geändert.",
+        "es": "Una manilla declarada (F6-10-00) cambió de posición."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Handle",
+            "fr": "Poignée",
+            "de": "Griff",
+            "es": "Manilla"
+          },
+          "required": false
+        },
+        {
+          "key": "position",
+          "type": "multi_select",
+          "label": {
+            "en": "Position",
+            "fr": "Position",
+            "de": "Stellung",
+            "es": "Posición"
+          },
+          "options": [
+            {
+              "value": "closed",
+              "label": {
+                "en": "Closed",
+                "fr": "Fermée",
+                "de": "Geschlossen",
+                "es": "Cerrada"
+              }
+            },
+            {
+              "value": "open",
+              "label": {
+                "en": "Open",
+                "fr": "Ouverte",
+                "de": "Offen",
+                "es": "Abierta"
+              }
+            },
+            {
+              "value": "tilted",
+              "label": {
+                "en": "Tilted",
+                "fr": "Oscillo-battant",
+                "de": "Gekippt",
+                "es": "Abatible"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "device_name",
+          "type": "string",
+          "label": {
+            "en": "Device name",
+            "fr": "Nom de l'appareil",
+            "de": "Gerätename",
+            "es": "Nombre del dispositivo"
+          }
+        },
+        {
+          "key": "position",
+          "type": "string",
+          "label": {
+            "en": "Position",
+            "fr": "Position",
+            "de": "Stellung",
+            "es": "Posición"
+          }
+        }
+      ]
+    },
+    {
+      "key": "unknown_device_heard",
+      "label": {
+        "en": "An unknown EnOcean device is heard",
+        "fr": "Un appareil EnOcean inconnu est entendu",
+        "de": "Ein unbekanntes EnOcean-Gerät wird empfangen",
+        "es": "Se oye un dispositivo EnOcean desconocido"
+      },
+      "description": {
+        "en": "A device that is not in the device list sent a telegram (once an hour per device at most).",
+        "fr": "Un appareil absent de la liste a émis un télégramme (une fois par heure et par appareil au plus).",
+        "de": "Ein Gerät, das nicht in der Liste steht, hat ein Telegramm gesendet (höchstens einmal pro Stunde und Gerät).",
+        "es": "Un dispositivo que no está en la lista emitió un telegrama (como máximo una vez por hora y dispositivo)."
+      },
+      "variables": [
+        {
+          "key": "sender_id",
+          "type": "string",
+          "label": {
+            "en": "EnOcean id",
+            "fr": "Id EnOcean",
+            "de": "EnOcean-ID",
+            "es": "Id EnOcean"
+          }
+        },
+        {
+          "key": "eep",
+          "type": "string",
+          "label": {
+            "en": "Profile (EEP)",
+            "fr": "Profil (EEP)",
+            "de": "Profil (EEP)",
+            "es": "Perfil (EEP)"
+          }
+        },
+        {
+          "key": "rorg",
+          "type": "string",
+          "label": {
+            "en": "Telegram type",
+            "fr": "Type de télégramme",
+            "de": "Telegrammtyp",
+            "es": "Tipo de telegrama"
+          }
+        },
+        {
+          "key": "dbm",
+          "type": "number",
+          "label": {
+            "en": "Signal (dBm)",
+            "fr": "Signal (dBm)",
+            "de": "Signal (dBm)",
+            "es": "Señal (dBm)"
+          }
+        },
+        {
+          "key": "teach_in",
+          "type": "boolean",
+          "label": {
+            "en": "Teach-in telegram",
+            "fr": "Télégramme d'apprentissage",
+            "de": "Lerntelegramm",
+            "es": "Telegrama de aprendizaje"
+          }
+        }
+      ]
+    },
+    {
+      "key": "gateway_disconnected",
+      "label": {
+        "en": "The EnOcean gateway is lost",
+        "fr": "La passerelle EnOcean est perdue",
+        "de": "Das EnOcean-Gateway ist getrennt",
+        "es": "Se pierde la pasarela EnOcean"
+      },
+      "description": {
+        "en": "The TCP connection to the gateway dropped. The integration keeps retrying on its own.",
+        "fr": "La connexion TCP à la passerelle est tombée. L'intégration réessaie toute seule.",
+        "de": "Die TCP-Verbindung zum Gateway ist abgebrochen. Die Integration versucht es selbst weiter.",
+        "es": "La conexión TCP con la pasarela se cayó. La integración reintenta por sí sola."
+      },
+      "variables": [
+        {
+          "key": "address",
+          "type": "string",
+          "label": {
+            "en": "Address",
+            "fr": "Adresse",
+            "de": "Adresse",
+            "es": "Dirección"
+          }
+        },
+        {
+          "key": "reason",
+          "type": "string",
+          "label": {
+            "en": "Reason",
+            "fr": "Raison",
+            "de": "Grund",
+            "es": "Motivo"
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "press_rocker",
+      "timeout_seconds": 10,
+      "label": {
+        "en": "Press a virtual EnOcean switch",
+        "fr": "Appuyer sur un interrupteur EnOcean virtuel",
+        "de": "Virtuellen EnOcean-Schalter drücken",
+        "es": "Pulsar un interruptor EnOcean virtual"
+      },
+      "description": {
+        "en": "Send a rocker press from a gateway channel, as a real switch would: any actuator that learned it reacts.",
+        "fr": "Émet un appui de bascule depuis un canal de la passerelle, comme un vrai interrupteur : tout actionneur qui l'a appris réagit.",
+        "de": "Sendet einen Wippendruck von einem Gateway-Kanal, wie ein echter Schalter: Jeder Aktor, der ihn gelernt hat, reagiert.",
+        "es": "Emite una pulsación de balancín desde un canal de la pasarela, como un interruptor real: todo actuador que la haya aprendido reacciona."
+      },
+      "fields": [
+        {
+          "key": "channel",
+          "type": "number",
+          "required": true,
+          "min": 0,
+          "max": 127,
+          "label": {
+            "en": "Channel (0-127)",
+            "fr": "Canal (0-127)",
+            "de": "Kanal (0-127)",
+            "es": "Canal (0-127)"
+          }
+        },
+        {
+          "key": "button",
+          "type": "select",
+          "required": true,
+          "label": {
+            "en": "Button",
+            "fr": "Bouton",
+            "de": "Taste",
+            "es": "Botón"
+          },
+          "options": [
+            {
+              "value": "ao",
+              "label": {
+                "en": "A O (rocker A, upper)",
+                "fr": "A O (bascule A, haut)",
+                "de": "A O (Wippe A, oben)",
+                "es": "A O (balancín A, arriba)"
+              }
+            },
+            {
+              "value": "ai",
+              "label": {
+                "en": "A I (rocker A, lower)",
+                "fr": "A I (bascule A, bas)",
+                "de": "A I (Wippe A, unten)",
+                "es": "A I (balancín A, abajo)"
+              }
+            },
+            {
+              "value": "bo",
+              "label": {
+                "en": "B O (rocker B, upper)",
+                "fr": "B O (bascule B, haut)",
+                "de": "B O (Wippe B, oben)",
+                "es": "B O (balancín B, arriba)"
+              }
+            },
+            {
+              "value": "bi",
+              "label": {
+                "en": "B I (rocker B, lower)",
+                "fr": "B I (bascule B, bas)",
+                "de": "B I (Wippe B, unten)",
+                "es": "B I (balancín B, abajo)"
+              }
+            }
+          ]
+        },
+        {
+          "key": "long_press",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "label": {
+            "en": "Long press",
+            "fr": "Appui long",
+            "de": "Langer Druck",
+            "es": "Pulsación larga"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "sent",
+          "type": "boolean",
+          "label": {
+            "en": "Sent",
+            "fr": "Envoyé",
+            "de": "Gesendet",
+            "es": "Enviado"
+          }
+        }
+      ]
+    },
+    {
+      "key": "send_teach_in",
+      "timeout_seconds": 15,
+      "label": {
+        "en": "Send an EnOcean teach-in",
+        "fr": "Envoyer un apprentissage EnOcean",
+        "de": "EnOcean-Lerntelegramm senden",
+        "es": "Enviar un aprendizaje EnOcean"
+      },
+      "description": {
+        "en": "Send the teach-in telegram of a declared actuator, which must be in learn mode.",
+        "fr": "Émet le télégramme d'apprentissage d'un actionneur déclaré, qui doit être en mode apprentissage.",
+        "de": "Sendet das Lerntelegramm eines angegebenen Aktors, der im Lernmodus sein muss.",
+        "es": "Emite el telegrama de aprendizaje de un actuador declarado, que debe estar en modo de aprendizaje."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Actuator",
+            "fr": "Actionneur",
+            "de": "Aktor",
+            "es": "Actuador"
+          },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "sent",
+          "type": "boolean",
+          "label": {
+            "en": "Sent",
+            "fr": "Envoyé",
+            "de": "Gesendet",
+            "es": "Enviado"
+          }
+        }
+      ]
+    }
+  ]
+}
